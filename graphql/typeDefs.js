@@ -21,13 +21,15 @@ module.exports = gql`
     id: ID!
     createdAt: String!
     username: String!
+
   }
   type User {
-    id: ID!
     email: String!
     token: String!
     username: String!
     createdAt: String!
+    latestMessage: Message
+    imageUrl:String
   }
   input RegisterInput {
     username: String!
@@ -35,9 +37,18 @@ module.exports = gql`
     confirmPassword: String!
     email: String!
   }
+  type Message {
+    id: ID!
+    content: String!
+    from: String!
+    to: String!
+    createdAt: String!
+  }
   type Query {
     getPosts: [Post]
     getPost(postId: ID!): Post!
+    getMessages(from: String!): [Message]
+    getUsers: [User]
   }
   type Mutation {
     register(registerInput: RegisterInput): User!
@@ -47,6 +58,7 @@ module.exports = gql`
     createComment(postId: ID!, body: String!): Post!
     deleteComment(postId: ID!, commentId: ID!): Post!
     likePost(postId: ID!): Post!
+    sendMessage(to: String!, content: String!): Message!
   }
   type Subscription {
     newPost: Post!

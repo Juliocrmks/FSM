@@ -1,7 +1,9 @@
 const User = require("../../models/User");
+const Message = require("../../models/Message");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { UserInputError } = require("apollo-server");
+const checkAuth = require("../../utils/checkAuth");
 
 const {
   validateRegisterInput,
@@ -27,7 +29,7 @@ module.exports = {
       const { errors, valid } = validateLoginInput(username, password);
       const user = await User.findOne({ username });
       if (!valid) {
-          console.log('error');
+        console.log("error");
         throw new UserInputError("Errors", { errors });
       }
 
@@ -85,6 +87,29 @@ module.exports = {
       //TODO: Validate user Data
       // Todo make sure user does not exits
       // TODO: hash password
+    },
+  },
+  Query: {
+    async getUsers(_, __, context) {
+      try {
+        const user = checkAuth(context);
+        if (!user) throw new AuthenticationError("Unauthorized");
+        let users = await User.find({ username: { $ne: user.username } });
+        const allUserMessages = await Message.find({
+          $or: [{ from: user.username }, { to: user.username }],
+        }).sort({ createdAt: -1 });
+        users = users.map((otherUser) => {
+          const latestMessage = allUserMessages.find(
+            (m) => m.from === otherUser.username || m.to === otherUser.username
+          );
+          otherUser.latestMessage = latestMessage;
+          return otherUser;
+        });
+
+        return users;
+      } catch (err) {
+        throw new Error(err);
+      }
     },
   },
 };
