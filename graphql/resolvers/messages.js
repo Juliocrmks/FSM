@@ -43,7 +43,6 @@ module.exports = {
           to: [from, user.username],
           from: [from, user.username],
         }).sort({ createdAt: -1 });
-        console.log(messages);
         return messages;
       } catch (error) {
         console.log(error);
